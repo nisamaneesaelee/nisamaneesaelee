@@ -1,0 +1,488 @@
+<html >
+<head>
+    
+    <title>Transformations</title>
+</head>
+<body>
+    <div>
+        <p><strong> ชื่อ-นามสกุล :</strong> นิศามณี แซ่ลี้ </p>
+        <p><strong> รหัสนักศึกษา :</strong> 6721601320 </p>
+    </div>
+    <h1> Interactive Computer Graphics</h1>
+
+<canvas id="canvas" width="200" height="200"
+style="width:500px; height:500px; border:1px solid #000000; image-rendering: pixelated;">
+</canvas>
+
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const imageData = ctx.createImageData(canvas.width, canvas.height);
+const data = imageData.data; // Array of color [R,G,B,A, R,G,B,A, ...]
+
+/*data[0 + 4 * 0] =255; //red
+data[1 + 4 * 0] =0; //green
+data[2 + 4 * 0] =0; //blue
+data[3 + 4 * 0] =255;
+
+data[4 + 4 * 1] =0; //red
+data[5 + 4 * 1] =255; //green
+data[6 + 4 * 1] =0; //blue
+data[7 + 4 * 1] =255;
+
+data[8 + 4 * 2] =0; //red
+data[9 + 4 * 2] =0; //green
+data[10 + 4 * 2] =255; //blue
+data[11 + 4 * 2] =255;*/
+
+let isDragging = false ;
+let previousMousrX = 0;
+let previousMousrY = 0;
+let r = 0;
+let g = 0;
+let b = 0;
+let degree = 0;
+let scale = 1;
+let mouseX = 100;
+let mouseY = 100;
+
+function putPixel(x, y, r, g, b, a=255)
+{
+    const idx = (y*canvas.width+x)*4;
+    data[idx] = r;
+    data[idx+1] = g;
+    data[idx+2] = b;
+    data[idx+3] = a;
+    
+}
+
+/*putPixel(0, 0, 255, 0, 0, 255);
+putPixel(1, 1, 0, 255, 0, 255);
+putPixel(2, 2, 0, 0, 255, 255);*/
+
+/*for(let i =0 ; i<=200 ; i++){
+    if(i%3==0)
+        {putPixel(i, i, 255, 0, 0, 255);}
+    if(i%3==1)
+        {putPixel(i, i, 0, 255, 0, 255);}
+    if(i%3==2)
+        {putPixel(i, i, 0, 0, 255, 255);}
+}*/
+
+/*for(let x=0 ; x<canvas.width ; x++){
+    putPixel(x, 10, 0, 255, 0);
+}*/
+
+/*let m = 99 ;
+let c = 10 ;
+for(let x=0 ; x<canvas.width ; x++){
+    let y = Math.round(m*x +c) ;
+    putPixel(x, y, 255, 0, 0);
+}*/
+
+/*function drawLine(x1, y1, x2, y2, r, g, b, a=255){  //DrawLine เก่า
+    const dx = Math.abs(x2-x1);
+    const dy = Math.abs(y2-y1);
+
+    if(dx > dy){
+        let m = dy/dx ;
+        let c = y1 - m * x1 ;
+        for(let x = Math.min(x1, x2) ; x <= Math.max(x1, x2) ; x++){
+            let y = Math.round(m * x + c);
+            putPixel(x, y, r, g, b, a);
+        }
+    }else{
+        let m = dx/dy ;
+        let c = x1 - m * y1 ;
+        for(let y = Math.min(y1, y2) ; y <= Math.max(y1, y2) ; y++){
+            let x = Math.round(m * y + c);
+            putPixel(x, y, r, g, b, a);
+        }
+
+    }
+}*/
+function drawLine(x1, y1, x2, y2, r, g, b, a = 255) {
+  const dx = Math.abs(x2 - x1);
+  const dy = Math.abs(y2 - y1);
+
+  if(dx > dy) {
+    const m = (y2 - y1) / (x2 - x1);
+    const c = y1 - m * x1;
+    for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+      const y = Math.round(m * x + c);
+      putPixel(x, y, r, g, b, a);
+    }
+  } else {
+    const m = (x2 - x1) / (y2 - y1);
+    const c = x1 - m * y1;
+    for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+      const x = Math.round(m * y + c);
+      putPixel(x, y, r, g, b, a);
+    }
+  }
+}
+
+//drawLine(10, 10, 40, 150, 255, 0, 0);
+
+
+function DrawRect(x1, y1, x2, y2, r, g, b, a=255){
+    drawLine(x1, y1, x2, y1, r, g, b, a);
+    drawLine(x2, y1, x2, y2, r, g, b, a);
+    drawLine(x2, y2, x1, y2, r, g, b, a);
+    drawLine(x1, y2, x1, y1, r, g, b, a);7
+}
+
+//DrawRect(50, 50, 150, 150, 0, 255, 0, 255);
+
+function DrawRectFilled(x1, y1, x2, y2, r, g, b, a=255){
+      for(let y = y1; y <= y2; y++){
+        for(let x = x1; x <= x2; x++){
+            putPixel(x,y,r,g,b,a);
+            /*//draw only border if(x === x1 || x === x2 || y === y1 || y === y2){//เเบบโปร่ง
+                putPixel(x,y,r,g,b,a);
+        }*/
+        }
+    }
+}
+
+//DrawRectFilled(60, 60, 140, 140, 0, 0, 255);
+
+function drawRectGradient(x1,y1,x2,y2,r1,g1,b1,r2,g2,b2,a=255){
+    for(let y = y1; y <= y2; y++){
+        let t = (y - y1) / (y2 - y1);//ปัจจจุบัน - จุดเริ่มต้น / จุดสิ้นสุด - จุดเริ่มต้น
+        let r = Math.round(r1 * (1 - t) + r2 * t);
+        let g = Math.round(g1 * (1 - t) + g2 * t);
+        let b = Math.round(b1 * (1 - t) + b2 * t);
+        for(let x = x1; x <= x2; x++){
+            putPixel(x,y,r,g,b,a);
+        }
+    }
+}
+
+//drawRectGradient(70, 70, 130, 130, 200, 0, 0, 255, 255, 0, 255); 
+
+function drawRectGradientX(x1,y1,x2,y2,r1,g1,b1,r2,g2,b2,a=255){
+    for(let x = x1 ; x <= x2 ; x++){
+        let t = (x - x1) / (x2 - x1);//ปัจจจุบัน - จุดเริ่มต้น / จุดสิ้นสุด - จุดเริ่มต้น
+        let r = Math.round(r1 * (1 - t) + r2 * t);
+        let g = Math.round(g1 * (1 - t) + g2 * t);
+        let b = Math.round(b1 * (1 - t) + b2 * t);
+        for(let y = y1; y <= y2; y++){
+            putPixel(x,y,r,g,b,a);
+        }
+    }
+}
+//drawRectGradientX(80, 80, 120, 120, 0, 0, 255, 0, 255, 0, 255);
+
+function drawEllipse(cx, cy, rx, ry, r, g, b, a=255){
+    for(let y = -ry ; y <= ry ; y++){
+        for(let x = -rx ; x <= rx ; x++){
+            if((x*x)/(rx*rx) + (y*y)/(ry*ry) <= 1) //ตัดขอบสี่เหลรายมทำให้ได้รูปวงกลม
+            {
+                putPixel(cx + x, cy + y, r, g, b, a);
+            }
+        }
+    }
+}
+//drawEllipse(100, 100, 20, 20, 0, 0, 0);
+
+function toScaledMouseCoords(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+        x: Math.floor((clientX - rect.left) * scaleX),
+        y: Math.floor((clientY - rect.top) * scaleY)
+    };
+}
+
+/*const spaceInvaderSprite =  //เอเลี่ยน
+   [
+    [0, 0, 1, 0, 0, 1, 0, 0],
+    [0, 0, 0, 1, 1, 0, 0, 0],
+    [0, 0, 1, 1, 1, 1, 0, 0],
+    [0, 1, 1, 1, 1, 1, 1, 0],
+    [1, 1, 0, 1, 1, 0, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 1, 0, 0, 1, 0, 1],
+    [0, 1, 0, 1, 1, 0, 1, 0],
+   ];*/
+const spaceInvaderSprite = [  //ยาน
+            [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+            [0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1],
+            [0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1],
+            [0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1],
+            [0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1],
+            [0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1],
+            [0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1],
+            [0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0],
+            [1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1],
+            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+            [0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0],
+            [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
+        ];
+function drawSprite(sprite, x, y, r, g, b, a = 255) {
+    for (let j = 0; j < sprite.length; j++) {
+        for (let i = 0; i < sprite[j].length; i++) {
+            if (sprite[j][i] === 1) {
+                putPixel(x + i, y + j, r, g, b, a);
+            }
+        }
+    }
+}
+function drawSpriteRotateScale(sprite, x, y, degree, scaleX, scaleY, is24Bit = false, r, g, b, a = 255){
+
+    for(let j=0; j < sprite.length; j++){
+        for (let i = 0; i < sprite[j].length; i++){
+            
+            let draw = false ;
+            
+            if(is24Bit){
+                const color = sprite[j][i];
+                if(color !== null){
+                    r = (color >> 16) & 255;
+                    g = (color >> 8) & 255;
+                    b = color & 255
+                    draw = true;
+                }
+            }else{
+
+                if(sprite[j][i] === 1){
+                    draw = true;
+                }
+
+            }
+            if (draw) {
+                //หาตรงกลางของยานแม่ แล้วเลื่อนรูป
+                const cx = i - (sprite[j].length /2) ;
+                const cy = j - (sprite.length /2) ;
+
+                //Rotate
+                const red = degree * (Math.PI / 180);
+                const x_rot = Math.round(cx * Math.cos(red) - cy * Math.sin(red));
+                const y_rot = Math.round(cx * Math.sin(red) + cy * Math.cos(red));
+
+                //Scaled
+                const x_scaled = Math.round(x_rot * scaleX);
+                const y_scaled = Math.round(y_rot * scaleY);
+
+                //Translate
+                //const x_translated = Math.round(scaleX + x);
+                //const y_translated = Math.round(scaleY + y);
+
+                //putPixel(Math.round(x + x_scaled), Math.round(y + y_scaled), r, g, b, a);
+                drawEllipse(x_scaled +x, y_scaled +y, Math.round(scaleX), Math.round(scaleY), r, g, b, a);
+            }
+        }
+    }
+}
+
+//drawSprite(spaceInvaderSprite, 100, 100, 255, 0, 255);
+
+const smileySprite = 
+   [
+    [0, 0, 1, 1, 1, 1, 0, 0],
+    [0, 1, 1, 1, 1, 1, 1, 0],
+    [1, 1, 0, 1, 1, 0, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 1, 1, 1, 1, 0, 1],
+    [1, 1, 0, 1, 1, 0, 1, 1],
+    [0, 1, 1, 0, 0, 1, 1, 0],
+    [0, 0, 1, 1, 1, 1, 0, 0],
+   ];
+   
+   function drawSprite(sprite, x, y, r, g, b, a = 255) {
+    for (let j = 0; j < sprite.length; j++) {
+        for (let i = 0; i < sprite[j].length; i++) {
+            if (sprite[j][i] === 1) {
+                putPixel(x + i, y + j, r, g, b, a);
+            }
+        }
+    }
+}
+
+const smileSprite24Bit = [
+  [null,       null,       0xB45309, 0xD97706, 0xD97706, 0xB45309, null,       null      ],
+  [null,       0xD97706,   0xFDE047, 0xFEF08A, 0xFEF08A, 0xFDE047, 0xD97706, null      ],
+  [0xB45309,   0xFDE047,   0x111827, 0xFDE047, 0xFDE047, 0x111827, 0xFDE047, 0xB45309  ],
+  [0xD97706,   0xFEF08A,   0x111827, 0xFEF08A, 0xFEF08A, 0x111827, 0xFEF08A, 0xD97706  ],
+  [0xD97706,   0xFDE047,   0xFDE047, 0xFDE047, 0xFDE047, 0xFDE047, 0xFDE047, 0xD97706  ],
+  [0xB45309,   0xFDE047,   0x111827, 0xFDE047, 0xFDE047, 0x111827, 0xFDE047, 0xB45309  ],
+  [null,       0xD97706,   0xFDE047, 0x111827, 0x111827, 0xFDE047, 0xD97706, null      ],
+  [null,       null,       0xB45309, 0xD97706, 0xD97706, 0xB45309, null,       null      ],
+];
+function drawSprite24Bit(sprite, x, y) {
+    for (let j = 0; j < sprite.length; j++) {
+        for (let i = 0; i < sprite[j].length; i++) {
+        const color = sprite[j][i];
+
+        if (color !== null) {
+            const r = (color >> 16) & 255;
+            const g = (color >> 8) & 255;
+            const b = color & 255;
+            putPixel(x + i, y + j, r, g, b);
+        }
+        }
+    }
+}
+
+
+const smileSprite24Bit32x32 = [
+  [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null, null, null, null, null, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, null, null, null, null, null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null, null, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, 0xFFDF48, 0xFFDF48, 0xFFDF48, 0xFFDF48, 0xFFDF48, 0xFFDF48, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, null, null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null, 0xC76A08, 0xC76A08, 0xFFDE47, 0xFFDE47, 0xFFDE47, 0xFFDE47, 0xFFDE47, 0xFFDE47, 0xFFDE47, 0xFFDE47, 0xFFDE47, 0xFFDE47, 0xFFDE47, 0xFFDE47, 0xC76A08, 0xC76A08, null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, 0xC76A08, 0xC76A08, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xFFDD45, 0xC76A08, 0xC76A08, null, null, null, null, null, null],
+  [null, null, null, null, null, 0xC76A08, 0xC76A08, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xFFDC44, 0xC76A08, 0xC76A08, null, null, null, null, null],
+  [null, null, null, null, 0xC76A08, 0xC76A08, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xFFDA43, 0xC76A08, 0xC76A08, null, null, null, null],
+  [null, null, null, null, 0xC76A08, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xFFD942, 0xC76A08, null, null, null, null],
+  [null, null, null, 0xC76A08, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xFFD841, 0xC76A08, null, null, null],
+  [null, null, 0xC76A08, 0xC76A08, 0xFFD640, 0xFFD640, 0xFFD640, 0xFFD640, 0xFFD640, 0x3B2507, 0x3B2507, 0x3B2507, 0xFFD640, 0xFFD640, 0xFFD640, 0xFFD640, 0xFFD640, 0xFFD640, 0xFFD640, 0xFFD640, 0x3B2507, 0x3B2507, 0x3B2507, 0xFFD640, 0xFFD640, 0xFFD640, 0xFFD640, 0xFFD640, 0xC76A08, 0xC76A08, null, null],
+  [null, null, 0xC76A08, 0xFFD53E, 0xFFD53E, 0xFFD53E, 0xFFD53E, 0xFFD53E, 0x3B2507, 0xFFFFFF, 0x3B2507, 0x3B2507, 0x3B2507, 0xFFD53E, 0xFFD53E, 0xFFD53E, 0xFFD53E, 0xFFD53E, 0xFFD53E, 0x3B2507, 0xFFFFFF, 0x3B2507, 0x3B2507, 0x3B2507, 0xFFD53E, 0xFFD53E, 0xFFD53E, 0xFFD53E, 0xFFD53E, 0xC76A08, null, null],
+  [null, null, 0xC76A08, 0xFFD43D, 0xFFD43D, 0xFFD43D, 0xFFD43D, 0xFFD43D, 0x3B2507, 0x3B2507, 0x3B2507, 0x3B2507, 0x3B2507, 0xFFD43D, 0xFFD43D, 0xFFD43D, 0xFFD43D, 0xFFD43D, 0xFFD43D, 0x3B2507, 0x3B2507, 0x3B2507, 0x3B2507, 0x3B2507, 0xFFD43D, 0xFFD43D, 0xFFD43D, 0xFFD43D, 0xFFD43D, 0xC76A08, null, null],
+  [null, 0xC76A08, 0xC76A08, 0xFFD33C, 0xFFD33C, 0xFFD33C, 0xFFD33C, 0xFFD33C, 0x3B2507, 0x3B2507, 0x3B2507, 0x3B2507, 0x3B2507, 0xFFD33C, 0xFFD33C, 0xFFD33C, 0xFFD33C, 0xFFD33C, 0xFFD33C, 0x3B2507, 0x3B2507, 0x3B2507, 0x3B2507, 0x3B2507, 0xFFD33C, 0xFFD33C, 0xFFD33C, 0xFFD33C, 0xFFD33C, 0xC76A08, 0xC76A08, null],
+  [null, 0xC76A08, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0x3B2507, 0x3B2507, 0x3B2507, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0x3B2507, 0x3B2507, 0x3B2507, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xFFD13B, 0xC76A08, null],
+  [null, 0xC76A08, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xFFD03A, 0xC76A08, null],
+  [null, 0xC76A08, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xFFCF39, 0xC76A08, null],
+  [null, 0xC76A08, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xF58B73, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xF58B73, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xFFCD37, 0xC76A08, null],
+  [null, 0xC76A08, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xFFCC36, 0xFFCC36, 0xFFCC36, 0xC76A08, null],
+  [null, 0xC76A08, 0xFFCB35, 0xFFCB35, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xFFCB35, 0xFFCB35, 0xFFCB35, 0xFFCB35, 0xFFCB35, 0xFFCB35, 0xFFCB35, 0xFFCB35, 0xFFCB35, 0xFFCB35, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xFFCB35, 0xFFCB35, 0xC76A08, null],
+  [null, 0xC76A08, 0xC76A08, 0xFFC934, 0xFFC934, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xFFC934, 0xFFC934, 0xFFC934, 0xFFC934, 0xFFC934, 0xFFC934, 0xFFC934, 0xFFC934, 0xFFC934, 0xFFC934, 0xFFC934, 0xFFC934, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xF58B73, 0xFFC934, 0xFFC934, 0xC76A08, 0xC76A08, null],
+  [null, null, 0xC76A08, 0xFFC833, 0xFFC833, 0xFFC833, 0xFFC833, 0xF58B73, 0xFFC833, 0x7A2E0B, 0x7A2E0B, 0xFFC833, 0xFFC833, 0xFFC833, 0xFFC833, 0xFFC833, 0xFFC833, 0xFFC833, 0xFFC833, 0xFFC833, 0xFFC833, 0x7A2E0B, 0x7A2E0B, 0xFFC833, 0xF58B73, 0xFFC833, 0xFFC833, 0xFFC833, 0xFFC833, 0xC76A08, null, null],
+  [null, null, 0xC76A08, 0xFFC732, 0xFFC732, 0xFFC732, 0xFFC732, 0xFFC732, 0xFFC732, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0xFFC732, 0xFFC732, 0xFFC732, 0xFFC732, 0xFFC732, 0xFFC732, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0xFFC732, 0xFFC732, 0xFFC732, 0xFFC732, 0xFFC732, 0xFFC732, 0xC76A08, null, null],
+  [null, null, 0xC76A08, 0xC76A08, 0xFFC630, 0xFFC630, 0xFFC630, 0xFFC630, 0xFFC630, 0xFFC630, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0xFFC630, 0xFFC630, 0xFFC630, 0xFFC630, 0xFFC630, 0xFFC630, 0xC76A08, 0xC76A08, null, null],
+  [null, null, null, 0xC76A08, 0xFFC42F, 0xFFC42F, 0xFFC42F, 0xFFC42F, 0xFFC42F, 0xFFC42F, 0xFFC42F, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0xFFC42F, 0xFFC42F, 0xFFC42F, 0xFFC42F, 0xFFC42F, 0xFFC42F, 0xFFC42F, 0xC76A08, null, null, null],
+  [null, null, null, null, 0xC76A08, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0x7A2E0B, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xFFC32E, 0xC76A08, null, null, null, null],
+  [null, null, null, null, 0xC76A08, 0xC76A08, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xFFC22D, 0xC76A08, 0xC76A08, null, null, null, null],
+  [null, null, null, null, null, 0xC76A08, 0xC76A08, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xFFC02C, 0xC76A08, 0xC76A08, null, null, null, null, null],
+  [null, null, null, null, null, null, 0xC76A08, 0xC76A08, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xFFBF2B, 0xC76A08, 0xC76A08, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null, 0xC76A08, 0xC76A08, 0xFFBE29, 0xFFBE29, 0xFFBE29, 0xFFBE29, 0xFFBE29, 0xFFBE29, 0xFFBE29, 0xFFBE29, 0xFFBE29, 0xFFBE29, 0xFFBE29, 0xFFBE29, 0xC76A08, 0xC76A08, null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null, null, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, 0xFFBD28, 0xFFBD28, 0xFFBD28, 0xFFBD28, 0xFFBD28, 0xFFBD28, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, null, null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null, null, null, null, null, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, 0xC76A08, null, null, null, null, null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+];
+
+    function drawSprite24Bit32x32(sprite, x, y) {
+    for (let j = 0; j < sprite.length; j++) {
+        for (let i = 0; i < sprite[j].length; i++) {
+        const color = sprite[j][i];
+
+        if (color !== null) {
+            const r = (color >> 16) & 255;
+            const g = (color >> 8) & 255;
+            const b = color & 255;
+            putPixel(x + i, y + j, r, g, b);
+        }
+        }
+    }
+    }
+
+//drawSprite(smileySprite, 85, 85, 255, 255, 0);
+
+/*for(let i = 0 ; i <3 ; i++){
+    for(let j = 0 ; j <3 ; j++){
+        drawSprite(spaceInvaderSprite, 110 + i*20, 10 + j*20, 255, 100, 0, 255);
+    }
+}
+for(let i = 0 ; i <3 ; i++){
+    for(let j = 0 ; j <3 ; j++){
+        drawSprite(smileySprite, 30 + i*20, 10 + j*20, 255, 100, 0, 255);
+    }
+}*/
+
+/*canvas.addEventListener('click', function(even){ 
+    const{x, y} = toScaledMouseCoords(even.clientX, even.clientY);
+    console.log('clicked', x, y);
+    putPixel(x, y, 255, 0, 0, 255);
+    ctx.putImageData(imageData, 0, 0);
+});*/
+
+canvas.addEventListener('mousedown', function(even){
+    isDragging = true;
+    const{x, y} = toScaledMouseCoords(even.clientX, even.clientY);
+    //console.log('mousedown', x, y); ไม่ได้ใช้
+    putPixel(x, y, 0, 255, 0, 255);
+    ctx.putImageData(imageData, 0, 0);
+});
+
+canvas.addEventListener('mouseup', function(even){
+    isDragging = false;
+    const{x, y} = toScaledMouseCoords(even.clientX, even.clientY);
+    //console.log('mouseup', x, y);
+    putPixel(x, y, 0, 0, 255, 255);
+    ctx.putImageData(imageData, 0, 0);
+});
+
+canvas.addEventListener('mousemove', function(even){
+    const{x, y} = toScaledMouseCoords(even.clientX, even.clientY);
+    mouseX = x;
+    mouseY = y;
+    //console.log('mousemove', x, y);
+    if(isDragging){
+        drawLine(previousMousrX, previousMousrY, x, y, r, g, b, 255);
+        //putPixel(x, y, 255, 180, 180, 255);
+    }
+    ctx.putImageData(imageData, 0, 0);
+
+    previousMousrX = x; //เก็บจุดล่าสุดไปเป็นจุดต่อไป
+    previousMousrY = y;
+});
+
+window.addEventListener('keydown', function(even){
+    console.log('keydown', even.key);
+    if(even.key === '1'){
+        r=255; g=0; b=0;
+    }else if(even.key === '2'){
+        r=0; g=255; b=0;
+    }else if(even.key === '3'){
+        r=0; g=0; b=255;
+    }else if(even.key === 'e'){
+        r=255; g=255; b=255;
+    }
+
+    if(even.key === 'ArrowLeft'){
+        degree -= 5 ;
+    }else if(even.key === 'ArrowRight'){
+        degree += 5 ;
+    }
+
+    if(even.key === 'ArrowUp'){
+        scale += 0.1;
+    }else if(even.key === 'ArrowDown'){
+        scale -= 0.1;
+    }
+
+});
+
+window.addEventListener('keyup', function(even){
+    console.log('keyup', even.key);
+});
+
+drawSprite(spaceInvaderSprite, 100, 100, 255, 150, 150);
+drawSpriteRotateScale(smileySprite, 50, 50, 180, 255, 180, 180);
+
+
+ctx.putImageData(imageData, 0, 0);
+
+function animate(){
+    DrawRectFilled(0, 0, canvas.width, canvas.height, 255, 255, 255);
+    //drawLine(100, 100, canvas.width - 1, 100, 0, 0, 0);
+    //drawLine(100, 100, 100, 0, 0, 0, 0);
+    //degree += 1;
+    //drawSprite24Bit(smileSprite24Bit, 20, 20,);
+    //drawSprite24Bit32x32(smileSprite24Bit32x32, 50, 50,);
+    drawSpriteRotateScale(smileSprite24Bit, mouseX, mouseY, degree, scale, scale, true, r, g, b);
+    ctx.putImageData(imageData, 0, 0);
+    requestAnimationFrame(animate);
+
+}
+animate();
+
+</script>
+
+</body>
+</html>
