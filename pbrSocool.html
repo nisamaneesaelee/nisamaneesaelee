@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PBR Model Viewer</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background: #181818;
+      color: white;
+    }
+
+    #app {
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #viewer {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    #panel {
+      position: absolute;
+
+      top: 20px;
+      right: 20px;
+
+      width: 180px;
+      height: fit-content;
+
+      padding: 12px;
+
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid #444;
+      border-radius: 12px;
+
+      z-index: 10;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 15px;
+    }
+
+    .control {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 7px;
+      font-size: 11px;
+    }
+
+    .value {
+      color: #aaa;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    input[type="color"] {
+      width: 100%;
+      height: 32px;
+      border: none;
+    }
+
+    #loading {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, .6);
+      border-radius: 6px;
+      font-size: 12px;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <div id="app">
+
+    <div id="viewer">
+      <div id="loading">กำลังโหลดโมเดล...</div>
+    </div>
+
+    <div id="panel">
+
+
+      <h2>🎨 Material</h2>
+
+      <div class="control">
+        <label>Base Color</label>
+        <input type="color" id="baseColor" value="#ffffff">
+      </div>
+
+      <div class="control">
+        <label>
+          Metalness
+          <span class="value" id="metalnessValue">0.00</span>
+        </label>
+        <input type="range" id="metalness" min="0" max="1" step="0.01" value="0">
+      </div>
+
+      <div class="control">
+        <label>
+          Roughness
+          <span class="value" id="roughnessValue">0.50</span>
+        </label>
+        <input type="range" id="roughness" min="0" max="1" step="0.01" value="0.5">
+      </div>
+
+      <div class="control">
+        <label>
+          Clearcoat
+          <span class="value" id="clearcoatValue">0.00</span>
+        </label>
+        <input type="range" id="clearcoat" min="0" max="1" step="0.01" value="0">
+      </div>
+
+
+    </div>
+
+  </div>
+
+  <script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+  <script type="module">
+
+    import * as THREE from 'three';
+
+    import { OrbitControls } from
+      'three/addons/controls/OrbitControls.js';
+
+    import { GLTFLoader } from
+      'three/addons/loaders/GLTFLoader.js';
+
+    import { EXRLoader } from
+      'three/addons/loaders/EXRLoader.js';
+
+
+    const viewer = document.getElementById('viewer');
+    const loading = document.getElementById('loading');
+
+    const scene = new THREE.Scene();
+
+
+    /* CAMERA */
+
+    const camera = new THREE.PerspectiveCamera(
+      45,
+      viewer.clientWidth / viewer.clientHeight,
+      0.1,
+      1000
+    );
+
+    camera.position.set(8, 15, 1);
+
+
+    /* RENDERER */
+
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true
+    });
+
+    renderer.setSize(
+      viewer.clientWidth,
+      viewer.clientHeight
+    );
+
+    renderer.setPixelRatio(1);
+
+    renderer.outputColorSpace =
+      THREE.SRGBColorSpace;
+
+    renderer.toneMapping =
+      THREE.ACESFilmicToneMapping;
+
+    viewer.appendChild(renderer.domElement);
+
+
+    /* CONTROLS */
+
+    const controls = new OrbitControls(
+      camera,
+      renderer.domElement
+    );
+
+    controls.enableDamping = false;
+
+
+    /* HDRI */
+
+    const exrSkyboxUrl = 'https://nisamaneesaelee.github.io/nisamaneesaelee/sundowner_overlook_1k.exr';
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    pmremGenerator.compileEquirectangularShader();
+
+    new EXRLoader()
+
+      .load(exrSkyboxUrl, (texture) => {
+        const skybox = pmremGenerator.fromEquirectangular(texture).texture;
+        scene.background = skybox;
+        scene.environment = skybox;
+
+        texture.dispose();
+        pmremGenerator.dispose();
+      }, undefined, (error) => {
+        console.error('Unable to load EXR skybox:', error);
+      });
+
+
+
+    //ใส่พื้น
+    const texFloor = new THREE.TextureLoader().load('https://sibsansuk.github.io/mossy_cobblestone_diff_1k.jpg', t => {
+    });
+    const matFloor = new THREE.MeshStandardMaterial({
+      map: texFloor,
+      side: THREE.DoubleSide
+    });
+    const planeGeometry = new THREE.PlaneGeometry(10, 10);
+    const plane = new THREE.Mesh(planeGeometry, matFloor);
+    plane.rotation.x = -Math.PI / 2;
+    plane.receiveShadow = true;
+
+    scene.add(plane);
+
+
+    /* LIGHT */
+
+    const light = new THREE.DirectionalLight(
+      0xffffff,
+      2
+    );
+
+    light.position.set(5, 5, 5);
+    scene.add(light);
+
+
+    /* LOAD MODEL */
+
+    const loader = new GLTFLoader();
+    let model;
+
+    loader.load(
+      'https://nisamaneesaelee.github.io/nisamaneesaelee/turtle.glb',
+      gltf => {
+        model = gltf.scene;
+        scene.add(model);
+        loading.style.display = 'none';
+      },
+
+      undefined,
+
+      error => {
+        console.error(error);
+        loading.textContent =
+          '❌ โหลดโมเดลไม่สำเร็จ';
+      }
+
+    );
+
+
+    /* PBR CONTROLS */
+
+    function updateMaterials(callback) {
+      if (!model) return;
+      model.traverse(child => {
+        if (!child.isMesh) return;
+        const materials =
+          Array.isArray(child.material)
+            ? child.material
+            : [child.material];
+        materials.forEach(callback);
+      });
+    }
+
+
+    const baseColor =
+      document.getElementById('baseColor');
+
+    const metalness =
+      document.getElementById('metalness');
+
+    const roughness =
+      document.getElementById('roughness');
+
+    const clearcoat =
+      document.getElementById('clearcoat');
+
+
+    baseColor.oninput = () => {
+      updateMaterials(material => {
+        if (material.color)
+          material.color.set(baseColor.value);
+      });
+    };
+
+
+    metalness.oninput = () => {
+      metalnessValue.textContent =
+        Number(metalness.value).toFixed(2);
+      updateMaterials(material => {
+        if ('metalness' in material)
+          material.metalness =
+            Number(metalness.value);
+      });
+
+    };
+
+
+    roughness.oninput = () => {
+      roughnessValue.textContent =
+        Number(roughness.value).toFixed(2);
+      updateMaterials(material => {
+        if ('roughness' in material)
+          material.roughness =
+            Number(roughness.value);
+      });
+    };
+
+
+    clearcoat.oninput = () => {
+      clearcoatValue.textContent =
+        Number(clearcoat.value).toFixed(2);
+      updateMaterials(material => {
+        if ('clearcoat' in material)
+          material.clearcoat =
+            Number(clearcoat.value);
+      });
+    };
+
+
+    /* RESIZE */
+
+    window.onresize = () => {
+      const width = viewer.clientWidth;
+      const height = viewer.clientHeight;
+
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(width, height);
+
+    };
+
+
+    /* ANIMATE */
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+  </script>
+
+</body>
+
+</html>
