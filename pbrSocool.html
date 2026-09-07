@@ -134,6 +134,31 @@
         <input type="range" id="clearcoat" min="0" max="1" step="0.01" value="0">
       </div>
 
+      <h2>💡 Light Position</h2>
+
+      <div class="control">
+        <label>
+          X
+          <span class="value" id="lightXValue">5.00</span>
+        </label>
+        <input type="range" id="lightX" min="-20" max="20" step="0.1" value="5">
+      </div>
+
+      <div class="control">
+        <label>
+          Y
+          <span class="value" id="lightYValue">5.00</span>
+        </label>
+        <input type="range" id="lightY" min="0" max="20" step="0.1" value="5">
+      </div>
+
+      <div class="control">
+        <label>
+          Z
+          <span class="value" id="lightZValue">5.00</span>
+        </label>
+        <input type="range" id="lightZ" min="-20" max="20" step="0.1" value="5">
+      </div>
 
     </div>
 
@@ -161,7 +186,6 @@
     import { EXRLoader } from
       'three/addons/loaders/EXRLoader.js';
 
-
     const viewer = document.getElementById('viewer');
     const loading = document.getElementById('loading');
 
@@ -185,6 +209,9 @@
     const renderer = new THREE.WebGLRenderer({
       antialias: true
     });
+
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     renderer.setSize(
       viewer.clientWidth,
@@ -256,7 +283,13 @@
     );
 
     light.position.set(5, 5, 5);
+    light.castShadow = true;
+
+    light.shadow.mapSize.width = 2048;
+    light.shadow.mapSize.height = 2048;
+
     scene.add(light);
+
 
 
     /* LOAD MODEL */
@@ -268,6 +301,14 @@
       'https://nisamaneesaelee.github.io/nisamaneesaelee/turtle.glb',
       gltf => {
         model = gltf.scene;
+
+        model.traverse(child => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
+
         scene.add(model);
         loading.style.display = 'none';
       },
@@ -297,6 +338,7 @@
       });
     }
 
+    
 
     const baseColor =
       document.getElementById('baseColor');
@@ -310,6 +352,58 @@
     const clearcoat =
       document.getElementById('clearcoat');
 
+    const lightX =
+      document.getElementById('lightX');
+
+    const lightY =
+      document.getElementById('lightY');
+
+    const lightZ =
+      document.getElementById('lightZ');
+
+    const lightXValue =
+      document.getElementById('lightXValue');
+
+    const lightYValue =
+      document.getElementById('lightYValue');
+
+    const lightZValue =
+      document.getElementById('lightZValue');
+
+
+    /* LIGHT POSITION CONTROLS */
+
+    lightX.oninput = () => {
+
+      light.position.x =
+        Number(lightX.value);
+
+      lightXValue.textContent =
+        Number(lightX.value).toFixed(2);
+
+    };
+
+
+    lightY.oninput = () => {
+
+      light.position.y =
+        Number(lightY.value);
+
+      lightYValue.textContent =
+        Number(lightY.value).toFixed(2);
+
+    };
+
+
+    lightZ.oninput = () => {
+
+      light.position.z =
+        Number(lightZ.value);
+
+      lightZValue.textContent =
+        Number(lightZ.value).toFixed(2);
+
+    };
 
     baseColor.oninput = () => {
       updateMaterials(material => {
