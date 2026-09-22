@@ -31,7 +31,7 @@
 
 
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xffffff);
+        scene.background = new THREE.Color(0x094782);
 
 
         const camera = new THREE.PerspectiveCamera(
@@ -80,7 +80,7 @@
             .setDataType(THREE.UnsignedByteType)
             .load(exrSkyboxUrl, (texture) => {
                 const skybox = pmremGenerator.fromEquirectangular(texture).texture;
-                scene.background = new THREE.Color(0xffffff);
+                //scene.background = new THREE.Color(0xffffff);
                 scene.environment = skybox;
                 texture.dispose();
                 pmremGenerator.dispose();
