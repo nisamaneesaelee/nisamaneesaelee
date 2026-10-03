@@ -174,33 +174,27 @@
                         targetLookAt.copy(
                             cameraPositions[object.name].lookAt
                         );
-
                         moving = true;
                         controls.enabled = false;
 
                         if (object.name === "Cube010") {
                             openPortfolio("about");
                         }
-
                         if (object.name === "Cube013") {
                             openPortfolio("skills");
                         }
-
                         if (object.name === "Cube016") {
                             openPortfolio("project");
                         }
-
                         break;
                     }
-
-                    // ⭐ สำคัญมากกกก
                     object = object.parent;
                 }
             }
         });
 
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
         scene.add(ambientLight);
 
         const directionalLight = new THREE.DirectionalLight(0xfff4dc, 0.5);
@@ -236,7 +230,7 @@
             console.error('Unable to load EXR skybox:', error);
         });
 
-
+        let keyObject = null;
         const loader = new THREE.GLTFLoader();
 
         loader.load(
@@ -250,6 +244,7 @@
                         child.receiveShadow = true;
                     }
                     if (child.name === "Cube065") {
+                        keyObject = child;
 
                         const oldMaterial = child.material;
 
@@ -270,24 +265,13 @@
 
                 const box = new THREE.Box3().setFromObject(model);
                 const center = box.getCenter(new THREE.Vector3());
-
-
-                const signLight = new THREE.SpotLight(0xffffaa, 2, 8, Math.PI / 3, 0.5, 1);
-
+                const signLight = new THREE.SpotLight(0xffffaa, 1, 8, Math.PI / 3, 0.5, 1);
 
                 // ตำแหน่งหลอดไฟ
-                signLight.position.set(
-                    1.5,   // X
-                    4,     // Y สูงกว่าป้าย
-                    -0.2   // Z อยู่ด้านหน้าป้าย
-                );
+                signLight.position.set(1.5, 4, -0.2);
 
                 // จุดที่ไฟส่อง
-                signLight.target.position.set(
-                    1.5,   // X ตรงกับป้าย
-                    2,     // Y ตรงกับป้าย
-                    -1     // Z ตรงกับป้าย
-                );
+                signLight.target.position.set(1.5, 2, -1);
 
                 scene.add(signLight);
                 scene.add(signLight.target);
@@ -296,14 +280,12 @@
 
 
         function animate(t) {
-
+            if (keyObject) {
+                keyObject.rotation.z -= 0.01;
+            }
             if (moving) {
-
                 // ขยับกล้องไปยังตำแหน่งเป้าหมาย
-                camera.position.lerp(
-                    targetCameraPosition,
-                    0.05
-                );
+                camera.position.lerp(targetCameraPosition, 0.05);
 
                 // หมุนกล้องให้มองเป้าหมาย
                 camera.lookAt(targetLookAt);
