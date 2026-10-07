@@ -35,25 +35,6 @@
             color: #333;
         }
 
-        #slideControls {
-            position: absolute;
-            bottom: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        #prevButton,
-        #nextButton {
-            background: white;
-            color: #333;
-            font-size: 22px;
-            width: 50px;
-            height: 45px;
-            padding: 0;
-        }
 
         #pageNumber {
             background: white;
@@ -80,7 +61,6 @@
     </div>
     <!-- core three.js -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/EXRLoader.js"></script>
@@ -109,9 +89,6 @@
 
         const portfolioUI = document.getElementById("portfolioUI");
         const backButton = document.getElementById("backButton");
-        const prevButton = document.getElementById("prevButton");
-        const nextButton = document.getElementById("nextButton");
-        const pageNumber = document.getElementById("pageNumber");
 
         let currentSection = null;
         let currentSlide = 0;
@@ -194,18 +171,14 @@
         });
 
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
         scene.add(ambientLight);
 
         const directionalLight = new THREE.DirectionalLight(0xfff4dc, 0.5);
 
         directionalLight.position.set(4, 8, 6);
         directionalLight.castShadow = true;
-        directionalLight.shadow.camera.left = -6;
-        directionalLight.shadow.camera.right = 6;
-        directionalLight.shadow.camera.top = 6;
 
-        directionalLight.shadow.camera.bottom = -6;
         directionalLight.shadow.camera.near = 0.5;
         directionalLight.shadow.camera.far = 30;
 
@@ -230,7 +203,8 @@
             console.error('Unable to load EXR skybox:', error);
         });
 
-        let keyObject = null;
+        let keyMaterial = null;
+        let keyDepthMaterial = null;
         const loader = new THREE.GLTFLoader();
 
         loader.load(
@@ -239,32 +213,124 @@
                 const model = gltf.scene;
 
                 model.traverse((child) => {
+                    console.log("OBJECT:", child.name);
                     if (child.isMesh) {
                         child.castShadow = true;
                         child.receiveShadow = true;
                     }
                     if (child.name === "Cube065") {
-                        keyObject = child;
 
-                        const oldMaterial = child.material;
+                        keyMaterial = child.material;
 
-                        child.material = new THREE.MeshStandardMaterial({
-                            color: oldMaterial.color
-                                ? oldMaterial.color.clone()
-                                : new THREE.Color(0xffffff),
+                        keyMaterial.onBeforeCompile = (shader) => {
 
-                            map: oldMaterial.map || null,
+                            shader.uniforms.uTime = {
+                                value: 0
+                            };
 
-                            roughness: 0.8,
-                            metalness: 0
+                            shader.vertexShader = `uniform float uTime;` + shader.vertexShader;
+
+
+                            shader.vertexShader = shader.vertexShader.replace(
+                                '#include <begin_vertex>',
+
+                                `
+                                    #include <begin_vertex>
+
+                                    // =================================
+                                    // ขยับกุญแจขึ้น - ลงตามแกน Y
+                                    // =================================
+
+                                    transformed.x += sin(uTime * 2.0) * 0.1;
+                                    transformed.y += cos(uTime * 2.0) * 0.1;
+                                `
+                            );
+
+
+                            // เก็บ shader ไว้เพื่ออัปเดตเวลา
+                            keyMaterial.userData.shader = shader;
+                        };
+
+                        keyMaterial.needsUpdate = true;
+                    }
+
+                    if (child.name === "Cube093") {
+                        child.material = new THREE.ShaderMaterial({
+
+                            uniforms: {
+
+                                uColor: {
+                                    value: child.material.color
+                                        ? child.material.color.clone()
+                                        : new THREE.Color(0xffaa22)
+                                },
+
+                                uLightPos: {
+                                    value: new THREE.Vector3(
+                                        1.5,
+                                        4.0,
+                                        -0.2
+                                    )
+                                }
+
+                            },
+                            vertexShader: `
+                                varying vec3 vNormal;
+                                varying vec3 vWorldPosition;
+
+                                void main() {
+
+                                    vNormal = normalize(
+                                        mat3(modelMatrix) * normal
+                                    );
+
+                                    vWorldPosition =
+                                        (modelMatrix * vec4(position, 1.0)).xyz;
+
+                                    gl_Position =
+                                        projectionMatrix *
+                                        modelViewMatrix *
+                                        vec4(position, 1.0);
+                                }
+                            `,
+                            fragmentShader: `
+                                precision mediump float;
+
+                                uniform vec3 uColor;
+
+                                varying vec3 vNormal;
+
+                                void main() {
+
+                                    vec3 N = normalize(vNormal);
+
+                                    // แสงจากด้านบนและด้านหน้า
+                                    vec3 L = normalize(vec3(0.2, 1.0, 3.0));
+
+                                    // คำนวณแสง
+                                    float diffuse = max(dot(N, L), 0.0);
+
+                                    // แบ่งความสว่างเป็น 5 ระดับ
+                                    float levels = 5.0;
+                                    float toon = floor(diffuse * levels) / (levels - 1.0);
+                                    toon = clamp(toon, 0.0, 1.0);
+
+                                    // เพิ่มแสงพื้นฐาน ไม่ให้ดำ
+                                    float ambient = 0.45;
+
+                                    float lighting = ambient + toon * 0.55;
+
+                                    vec3 color = uColor * lighting;
+
+                                    gl_FragColor = vec4(color, 1.0);
+                                }
+                            `,
                         });
                     }
+
                 });
 
                 scene.add(model);
-
-                const box = new THREE.Box3().setFromObject(model);
-                const center = box.getCenter(new THREE.Vector3());
                 const signLight = new THREE.SpotLight(0xffffaa, 1, 8, Math.PI / 3, 0.5, 1);
 
                 // ตำแหน่งหลอดไฟ
@@ -280,9 +346,17 @@
 
 
         function animate(t) {
-            if (keyObject) {
-                keyObject.rotation.z -= 0.01;
+            if (keyMaterial && keyMaterial.userData.shader) {
+
+                const time = t * 0.001;
+
+                keyMaterial.userData.shader.uniforms.uTime.value = time;
+
+                if (keyDepthMaterial && keyDepthMaterial.userData.shader) {
+                    keyDepthMaterial.userData.shader.uniforms.uTime.value = time;
+                }
             }
+
             if (moving) {
                 // ขยับกล้องไปยังตำแหน่งเป้าหมาย
                 camera.position.lerp(targetCameraPosition, 0.05);
@@ -297,7 +371,7 @@
                     controls.target.copy(targetLookAt);
                     moving = false;
                     controls.enabled = true;
-                    controls.update(); // ⭐ เพิ่มบรรทัดนี้
+                    controls.update();
                 }
             }
 
@@ -313,10 +387,6 @@
             updateSlide();
         }
 
-        function updateSlide() {
-            const sectionSlides = slides[currentSection];
-            pageNumber.textContent = `${currentSlide + 1} / ${sectionSlides.length}`;
-        }
 
         backButton.addEventListener("click", () => {
             // ซ่อนปุ่ม Portfolio
