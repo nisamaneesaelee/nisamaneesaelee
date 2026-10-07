@@ -228,22 +228,24 @@
                                 value: 0
                             };
 
-                            shader.vertexShader = `uniform float uTime;` + shader.vertexShader;
+                            shader.vertexShader = `
+                        uniform float uTime;
+                    ` + shader.vertexShader;
 
 
                             shader.vertexShader = shader.vertexShader.replace(
                                 '#include <begin_vertex>',
 
                                 `
-                                    #include <begin_vertex>
+                        #include <begin_vertex>
 
-                                    // =================================
-                                    // ขยับกุญแจขึ้น - ลงตามแกน Y
-                                    // =================================
+                        // =================================
+                        // ขยับกุญแจขึ้น - ลงตามแกน Y
+                        // =================================
 
-                                    transformed.x += sin(uTime * 2.0) * 0.1;
-                                    transformed.y += cos(uTime * 2.0) * 0.1;
-                                `
+                        transformed.x += sin(uTime * 2.0) * 0.1;
+                        transformed.y += cos(uTime * 2.0) * 0.1;
+                        `
                             );
 
 
